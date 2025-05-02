@@ -11,6 +11,7 @@ class TagAdapter(private val tagList: MutableList<String>) :
         RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
 
 private var selectedPosition = -1
+private var onTagClickListener: ((String) -> Unit)? = null
 
 inner class TagViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     val tagTextView: TextView = itemView.findViewById(R.id.tag_text_view)
@@ -34,6 +35,7 @@ override fun onBindViewHolder(holder: TagViewHolder, position: Int) {
 
     if (position == selectedPosition) {
         holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.purple_200))
+        onTagClickListener?.invoke(tag)
     } else {
         holder.itemView.setBackgroundColor(holder.itemView.context.getColor(android.R.color.background_dark))
     }
@@ -59,4 +61,7 @@ fun addTag(tag: String) {
     tagList.add(tag)
     notifyDataSetChanged()
 }
+    fun setOnTagClickListener(listener: (String) -> Unit) {
+        onTagClickListener = listener
+    }
 }

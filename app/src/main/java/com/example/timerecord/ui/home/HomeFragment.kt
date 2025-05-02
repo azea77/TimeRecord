@@ -84,6 +84,11 @@ class HomeFragment : Fragment() {
             tagAdapter.removeSelectedTag()
         }
 
+        // 设置 TagAdapter 的点击事件监听器
+        tagAdapter.setOnTagClickListener { tag ->
+            inputText.setText(tag)
+        }
+
         val textView: TextView = binding.textHome
         homeViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
