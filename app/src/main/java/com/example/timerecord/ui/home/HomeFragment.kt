@@ -98,6 +98,7 @@ class HomeFragment : Fragment() {
             val input = inputText.text.toString().trim()
             if (input.isNotEmpty()) {
                 homeViewModel.insertTag(Tag(name = input))
+                tagAdapter.addTag(input)
                 inputText.text.clear()
             }
         }
@@ -106,6 +107,7 @@ class HomeFragment : Fragment() {
             val selectedTag = tagAdapter.getSelectedTag()
             if (selectedTag != null) {
                 homeViewModel.deleteTag(Tag(name = selectedTag))
+                tagAdapter.removeSelectedTag()
                 inputText.text.clear()
             }
         }

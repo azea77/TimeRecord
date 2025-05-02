@@ -7,8 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.timerecord.R
 
-class TagAdapter(private val tagList: MutableList<String>) :
-    RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
+class TagAdapter(
+    private var tagList: MutableList<String> = mutableListOf()
+) : RecyclerView.Adapter<TagAdapter.TagViewHolder>() {
 
     private var selectedPosition = -1
     private var onTagClickListener: ((String) -> Unit)? = null
@@ -18,15 +19,19 @@ class TagAdapter(private val tagList: MutableList<String>) :
 
         init {
             itemView.setOnClickListener {
-                selectedPosition = adapterPosition
-                notifyDataSetChanged()
-                onTagClickListener?.invoke(tagList[adapterPosition])
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    selectedPosition = position
+                    notifyDataSetChanged()
+                    onTagClickListener?.invoke(tagList[position])
+                }
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.tag_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.tag_item, parent, false)
         return TagViewHolder(view)
     }
 
@@ -41,7 +46,23 @@ class TagAdapter(private val tagList: MutableList<String>) :
         }
     }
 
-    override fun getItemCount(): Int = tagList.size
+    override fun getItemCount() = tagList.size
+
+    fun addTag(tag: String) {
+        if (!tagList.contains(tag)) {
+            tagList.add(tag)
+            notifyItemInserted(tagList.size - 1)
+        }
+    }
+
+    fun removeSelectedTag() {
+        if (selectedPosition != -1) {
+            val position = selectedPosition
+            tagList.removeAt(position)
+            selectedPosition = -1
+            notifyItemRemoved(position)
+        }
+    }
 
     fun getSelectedTag(): String? {
         return if (selectedPosition != -1 && selectedPosition < tagList.size) {
