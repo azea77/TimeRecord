@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
+import android.widget.Toast
 import com.example.timerecord.R
 import com.example.timerecord.data.Record
 import java.text.SimpleDateFormat
@@ -110,37 +111,55 @@ class RecordTableAdapter(
     }
 
     private fun saveRowChanges(row: TableRow, record: Record) {
-        // 清除行中的所有视图
-        row.removeAllViews()
+        try {
+            // 获取编辑框中的文本
+            val startTimeText = (row.getChildAt(0) as EditText).text.toString()
+            val endTimeText = (row.getChildAt(1) as EditText).text.toString()
+            val taskText = (row.getChildAt(2) as EditText).text.toString()
 
-        // 更新记录数据
-        val startTimeText = (row.getChildAt(0) as EditText).text.toString()
-        val endTimeText = (row.getChildAt(1) as EditText).text.toString()
-        record.startTime = parseTime(startTimeText)
-        record.endTime = parseTime(endTimeText)
-        record.task = (row.getChildAt(2) as EditText).text.toString()
+            // 验证时间格式
+            val startTime = parseTime(startTimeText)
+            val endTime = parseTime(endTimeText)
 
-        // 通知更新
-        onRecordUpdate?.invoke(record)
+            // 验证时间顺序
+            if (startTime > endTime) {
+                Toast.makeText(context, "开始时间不能晚于结束时间", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-        // 重新添加不可编辑的视图
-        val startTimeView = TextView(context).apply {
-            text = formatTime(record.startTime)
-            setPadding(8, 8, 8, 8)
+            // 更新记录数据
+            record.startTime = startTime
+            record.endTime = endTime
+            record.task = taskText
+
+            // 通知更新
+            onRecordUpdate?.invoke(record)
+
+            // 清除行中的所有视图
+            row.removeAllViews()
+
+            // 重新添加不可编辑的视图
+            val startTimeView = TextView(context).apply {
+                text = formatTime(record.startTime)
+                setPadding(8, 8, 8, 8)
+            }
+            row.addView(startTimeView)
+
+            val endTimeView = TextView(context).apply {
+                text = formatTime(record.endTime)
+                setPadding(8, 8, 8, 8)
+            }
+            row.addView(endTimeView)
+
+            val taskView = TextView(context).apply {
+                text = record.task
+                setPadding(8, 8, 8, 8)
+            }
+            row.addView(taskView)
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "保存失败：${e.message}", Toast.LENGTH_SHORT).show()
         }
-        row.addView(startTimeView)
-
-        val endTimeView = TextView(context).apply {
-            text = formatTime(record.endTime)
-            setPadding(8, 8, 8, 8)
-        }
-        row.addView(endTimeView)
-
-        val taskView = TextView(context).apply {
-            text = record.task
-            setPadding(8, 8, 8, 8)
-        }
-        row.addView(taskView)
     }
 
     private fun formatTime(timestamp: Long): String {
@@ -149,9 +168,13 @@ class RecordTableAdapter(
 
     private fun parseTime(timeText: String): Long {
         return try {
-            dateFormat.parse(timeText)?.time ?: System.currentTimeMillis()
+            val parsedDate = dateFormat.parse(timeText)
+            if (parsedDate == null) {
+                throw Exception("无效的时间格式")
+            }
+            parsedDate.time
         } catch (e: Exception) {
-            System.currentTimeMillis()
+            throw Exception("时间格式错误，请使用 yyyy-MM-dd HH:mm:ss 格式")
         }
     }
 
