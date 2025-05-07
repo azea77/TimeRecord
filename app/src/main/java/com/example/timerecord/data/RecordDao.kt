@@ -8,6 +8,9 @@ interface RecordDao {
     @Query("SELECT * FROM records ORDER BY id DESC")
     fun getAllRecords(): Flow<List<Record>>
 
+    @Query("SELECT * FROM records ORDER BY id DESC")
+    suspend fun getAllRecordsSync(): List<Record>
+
     @Insert
     suspend fun insert(record: Record)
 
