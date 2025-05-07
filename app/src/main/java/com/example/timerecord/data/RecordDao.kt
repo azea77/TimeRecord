@@ -5,6 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecordDao {
+    @Query("SELECT * FROM records ORDER BY id DESC LIMIT 5")
+    fun getRecentRecords(): Flow<List<Record>>
+
     @Query("SELECT * FROM records ORDER BY id DESC")
     fun getAllRecords(): Flow<List<Record>>
 

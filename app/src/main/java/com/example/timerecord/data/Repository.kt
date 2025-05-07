@@ -3,6 +3,7 @@ package com.example.timerecord.data
 import kotlinx.coroutines.flow.Flow
 
 class Repository(private val recordDao: RecordDao, private val tagDao: TagDao) {
+    val recentRecords: Flow<List<Record>> = recordDao.getRecentRecords()
     val allRecords: Flow<List<Record>> = recordDao.getAllRecords()
     val allTags: Flow<List<Tag>> = tagDao.getAllTags()
 

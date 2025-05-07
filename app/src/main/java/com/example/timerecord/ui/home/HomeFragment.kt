@@ -64,7 +64,7 @@ class HomeFragment : Fragment() {
 
         // 观察记录数据
         viewLifecycleOwner.lifecycleScope.launch {
-            homeViewModel.allRecords.collectLatest { records ->
+            homeViewModel.recentRecords.collectLatest { records ->
                 recordTableAdapter.clearRecords()
                 records.forEach { record ->
                     recordTableAdapter.addRecord(record)

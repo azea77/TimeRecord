@@ -15,14 +15,14 @@ import java.util.*
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: Repository
-    val allRecords: Flow<List<Record>>
+    val recentRecords: Flow<List<Record>>
     val allTags: Flow<List<Tag>>
     private val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
     init {
         val database = AppDatabase.getDatabase(application)
         repository = Repository(database.recordDao(), database.tagDao())
-        allRecords = repository.allRecords
+        recentRecords = repository.recentRecords
         allTags = repository.allTags
     }
 
@@ -49,12 +49,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteTag(tag: Tag) = viewModelScope.launch {
-        val time = dateFormat.format(Date())
-        Log.i("TimeRecord", "==========================================")
-        Log.i("TimeRecord", "Time: $time")
-        Log.i("TimeRecord", "Action: DELETE TAG")
-        Log.i("TimeRecord", "Tag Name: ${tag.name}")
-        Log.i("TimeRecord", "==========================================")
         repository.deleteTag(tag)
     }
 }
