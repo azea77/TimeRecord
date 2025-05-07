@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class Record(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    var startTime: String,
-    var endTime: String,
+    var startTime: Long,
+    var endTime: Long,
     var task: String
 ) 

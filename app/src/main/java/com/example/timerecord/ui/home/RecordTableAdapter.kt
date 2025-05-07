@@ -10,6 +10,8 @@ import android.widget.TableRow
 import android.widget.TextView
 import com.example.timerecord.R
 import com.example.timerecord.data.Record
+import java.text.SimpleDateFormat
+import java.util.*
 
 class RecordTableAdapter(
     private val context: Context,
@@ -18,6 +20,7 @@ class RecordTableAdapter(
 ) {
     private val records = mutableListOf<Record>()
     private var editingRow: TableRow? = null
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
     fun addRecord(record: Record) {
         records.add(record)
@@ -34,14 +37,14 @@ class RecordTableAdapter(
 
         // 开始时间
         val startTimeView = TextView(context).apply {
-            text = record.startTime
+            text = formatTime(record.startTime)
             setPadding(8, 8, 8, 8)
         }
         row.addView(startTimeView)
 
         // 结束时间
         val endTimeView = TextView(context).apply {
-            text = record.endTime
+            text = formatTime(record.endTime)
             setPadding(8, 8, 8, 8)
         }
         row.addView(endTimeView)
@@ -84,15 +87,17 @@ class RecordTableAdapter(
 
         // 添加可编辑的开始时间
         val startTimeEdit = EditText(context).apply {
-            setText(record.startTime)
+            setText(formatTime(record.startTime))
             setPadding(8, 8, 8, 8)
+            hint = "yyyy-MM-dd HH:mm:ss"
         }
         row.addView(startTimeEdit)
 
         // 添加可编辑的结束时间
         val endTimeEdit = EditText(context).apply {
-            setText(record.endTime)
+            setText(formatTime(record.endTime))
             setPadding(8, 8, 8, 8)
+            hint = "yyyy-MM-dd HH:mm:ss"
         }
         row.addView(endTimeEdit)
 
@@ -109,8 +114,10 @@ class RecordTableAdapter(
         row.removeAllViews()
 
         // 更新记录数据
-        record.startTime = (row.getChildAt(0) as EditText).text.toString()
-        record.endTime = (row.getChildAt(1) as EditText).text.toString()
+        val startTimeText = (row.getChildAt(0) as EditText).text.toString()
+        val endTimeText = (row.getChildAt(1) as EditText).text.toString()
+        record.startTime = parseTime(startTimeText)
+        record.endTime = parseTime(endTimeText)
         record.task = (row.getChildAt(2) as EditText).text.toString()
 
         // 通知更新
@@ -118,13 +125,13 @@ class RecordTableAdapter(
 
         // 重新添加不可编辑的视图
         val startTimeView = TextView(context).apply {
-            text = record.startTime
+            text = formatTime(record.startTime)
             setPadding(8, 8, 8, 8)
         }
         row.addView(startTimeView)
 
         val endTimeView = TextView(context).apply {
-            text = record.endTime
+            text = formatTime(record.endTime)
             setPadding(8, 8, 8, 8)
         }
         row.addView(endTimeView)
@@ -134,6 +141,18 @@ class RecordTableAdapter(
             setPadding(8, 8, 8, 8)
         }
         row.addView(taskView)
+    }
+
+    private fun formatTime(timestamp: Long): String {
+        return dateFormat.format(Date(timestamp))
+    }
+
+    private fun parseTime(timeText: String): Long {
+        return try {
+            dateFormat.parse(timeText)?.time ?: System.currentTimeMillis()
+        } catch (e: Exception) {
+            System.currentTimeMillis()
+        }
     }
 
     fun clearRecords() {

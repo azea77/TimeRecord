@@ -34,7 +34,7 @@ class HomeFragment : Fragment() {
     private lateinit var tagAdapter: TagAdapter
     private lateinit var recordTableAdapter: RecordTableAdapter
     private lateinit var homeViewModel: HomeViewModel
-    private var lastRecordTime: String? = null
+    private var lastRecordTime: Long? = null
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
     override fun onCreateView(
@@ -82,11 +82,11 @@ class HomeFragment : Fragment() {
         recordButton.setOnClickListener {
             val input = inputText.text.toString().trim()
             if (input.isNotEmpty()) {
-                val currentTime = dateFormat.format(Date())
+                val currentTime = System.currentTimeMillis()
                 val record = if (lastRecordTime != null) {
                     Record(startTime = lastRecordTime!!, endTime = currentTime, task = input)
                 } else {
-                    Record(startTime = "首次记录", endTime = currentTime, task = input)
+                    Record(startTime = currentTime, endTime = currentTime, task = input)
                 }
                 homeViewModel.insertRecord(record)
                 lastRecordTime = currentTime
