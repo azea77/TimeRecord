@@ -69,6 +69,10 @@ class HomeFragment : Fragment() {
                 records.forEach { record ->
                     recordTableAdapter.addRecord(record)
                 }
+                // 更新 lastRecordTime 为最后一个记录的结束时间
+                if (records.isNotEmpty()) {
+                    lastRecordTime = records[0].endTime
+                }
             }
         }
 
