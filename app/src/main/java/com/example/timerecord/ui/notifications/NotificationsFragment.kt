@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -62,22 +63,96 @@ class NotificationsFragment : Fragment() {
         exportButton = binding.exportButton
 
         importButton.setOnClickListener {
-            openFilePicker()
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "text/plain"
+            }
+            importFileLauncher.launch(intent)
         }
 
         exportButton.setOnClickListener {
             saveFile()
         }
 
+        binding.importTextButton.setOnClickListener {
+            importText()
+        }
+
         return root
     }
 
-    private fun openFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/*"
+    private fun importText() {
+        val text = binding.importText.text.toString().trim()
+        if (text.isEmpty()) {
+            Toast.makeText(context, "请输入要导入的文本", Toast.LENGTH_SHORT).show()
+            return
         }
-        importFileLauncher.launch(intent)
+
+        // 预检查所有行的格式
+        val lines = text.lineSequence().toList()
+        var hasError = false
+        var errorLine = 0
+
+        for ((index, line) in lines.withIndex()) {
+            try {
+                val parts = line.split(",")
+                if (parts.size != 3) {
+                    hasError = true
+                    errorLine = index + 1
+                    break
+                }
+
+                val startTime = dateFormat.parse(parts[0].trim())?.time
+                val endTime = dateFormat.parse(parts[1].trim())?.time
+
+                if (startTime == null || endTime == null) {
+                    hasError = true
+                    errorLine = index + 1
+                    break
+                }
+            } catch (e: Exception) {
+                hasError = true
+                errorLine = index + 1
+                break
+            }
+        }
+
+        if (hasError) {
+            Toast.makeText(context, "第 $errorLine 行格式错误，请检查后重试", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 所有行格式正确，执行导入
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val database = AppDatabase.getDatabase(requireContext())
+                var successCount = 0
+
+                lines.forEach { line ->
+                    val parts = line.split(",")
+                    val startTime = dateFormat.parse(parts[0].trim())!!.time
+                    val endTime = dateFormat.parse(parts[1].trim())!!.time
+                    val task = parts[2].trim()
+
+                    val record = Record(
+                        startTime = startTime,
+                        endTime = endTime,
+                        task = task
+                    )
+                    database.recordDao().insert(record)
+                    successCount++
+                }
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "成功导入 $successCount 条记录", Toast.LENGTH_SHORT).show()
+                    binding.importText.text.clear()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "导入失败：${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun saveFile() {
